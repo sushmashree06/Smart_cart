@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}User Login | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="form-shell">
+        <h2 class="page-title text-center">User Login</h2>
+        <p class="subtitle text-center">Sign in to your SmartCart account to shop and track orders</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form class="form-card" method="POST" action="/user-login">
+            <div class="form-group">
+                <label for="user_email">Email Address</label>
+                <input type="email" 
+                       id="user_email" 
+                       name="email" 
+                       placeholder="name@example.com" 
+                       required 
+                       autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <div class="label-row-flex">
+                    <label for="user_password">Password</label>
+                    <a href="{{ url_for('user_forgot_password') }}" class="subtle-link">Forgot Password?</a>
+                </div>
+                <input type="password" 
+                       id="user_password" 
+                       name="password" 
+                       placeholder="Enter your password" 
+                       required 
+                       autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+
+            <div class="form-footer-links">
+                <span>Don't have an account? </span>
+                <a href="/user-register"><strong>Create Account</strong></a>
+            </div>
+
+            <div class="form-subtle-switch">
+                <a href="/admin-login">Switch to Admin Portal &rarr;</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

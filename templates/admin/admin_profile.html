@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Admin Profile | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="profile-wrapper">
+        <h2 class="page-title text-center">Admin Profile</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="profile-card">
+            <!-- Current Profile Image -->
+            <div class="profile-avatar-wrap">
+                {% if admin.profile_image %}
+                    <img src="/uploads/admin_profiles/{{ admin.profile_image }}" 
+                         alt="{{ admin.name }}"
+                         class="profile-avatar"
+                         onerror="this.onerror=null; this.src='/static/uploads/admin_profiles/{{ admin.profile_image }}';">
+                {% else %}
+                    <div class="profile-avatar-placeholder" aria-label="Admin Avatar">
+                        {{ admin.name[:1]|upper if admin.name else 'A' }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <h3 class="profile-user-name">{{ admin.name }}</h3>
+            <p class="profile-user-email">{{ admin.email }}</p>
+
+            <div class="profile-stats-grid">
+                <div class="profile-stat-box">
+                    <span class="stat-label">Admin ID</span>
+                    <span class="stat-val">#{{ admin.admin_id }}</span>
+                </div>
+                <div class="profile-stat-box">
+                    <span class="stat-label">Role</span>
+                    <span class="stat-val">System Administrator</span>
+                </div>
+            </div>
+
+            <hr class="profile-divider">
+
+            <h3 class="form-section-title">Update Admin Information</h3>
+
+            <form class="profile-form" method="POST" action="/admin/profile" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="admin_name">Name</label>
+                    <input type="text" id="admin_name" name="name" value="{{ admin.name }}" required autocomplete="name">
+                </div>
+
+                <div class="form-group">
+                    <label for="admin_email">Email Address</label>
+                    <input type="email" id="admin_email" name="email" value="{{ admin.email }}" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="admin_password">New Password <span class="label-hint">(leave blank to keep current)</span></label>
+                    <input type="password" id="admin_password" name="password" autocomplete="new-password">
+                </div>
+
+                <div class="form-group">
+                    <label for="admin_profile_image">Upload New Profile Image <span class="label-hint">(optional)</span></label>
+                    <input type="file" id="admin_profile_image" name="profile_image" accept="image/*">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Update Profile</button>
+            </form>
+
+            <div class="profile-quick-actions">
+                <a href="/admin-dashboard" class="btn btn-secondary">Back to Dashboard</a>
+                <a href="/admin/item-list" class="btn btn-secondary">Manage Products</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

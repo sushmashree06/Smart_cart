@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}All Products | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="products-header">
+        <h2 class="page-title text-center">Explore Products</h2>
+        <p class="subtitle text-center">Find the best smart items at great prices</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alerts-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        <span>{{ message }}</span>
+                        {% if session.get('cart') %}
+                            <a href="/user/cart" class="alert-link-btn">Proceed to Payment &rarr;</a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Cart Notification Bar if Cart has items -->
+    {% if session.get('cart') %}
+    <div class="cart-floating-banner">
+        <span>🛒 You have <strong>{{ session.get('cart')|length }}</strong> item(s) in your shopping cart.</span>
+        <div class="cart-banner-actions">
+            <a href="/user/cart" class="btn btn-sm btn-outline-white">View Cart</a>
+            <a href="/user/checkout" class="btn btn-sm btn-accent">Proceed to Payment &rarr;</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Centered Search and Filter (2 Separate Tools) -->
+    <div class="search-filter-wrapper">
+        <!-- 1. Separate Search Form -->
+        <form class="search-box-form" method="GET" action="/user/products" role="search">
+            {% if request.args.get('category') %}
+                <input type="hidden" name="category" value="{{ request.args.get('category') }}">
+            {% endif %}
+            <div class="search-input-group">
+                <span class="search-icon" aria-hidden="true">🔍</span>
+                <input type="text" 
+                       name="search" 
+                       placeholder="Search products by name..." 
+                       value="{{ request.args.get('search', '') }}" 
+                       aria-label="Search products">
+                <button type="submit" class="btn btn-primary">Search</button>
+                {% if request.args.get('search') %}
+                    <a href="/user/products{% if request.args.get('category') %}?category={{ request.args.get('category') }}{% endif %}" class="btn btn-secondary btn-sm">Clear Search</a>
+                {% endif %}
+            </div>
+        </form>
+
+        <!-- 2. Separate Category Filter Form -->
+        <form class="filter-box-form" method="GET" action="/user/products">
+            {% if request.args.get('search') %}
+                <input type="hidden" name="search" value="{{ request.args.get('search') }}">
+            {% endif %}
+            <div class="category-select-group">
+                <label for="user-cat-select" class="filter-label">Category:</label>
+                <select id="user-cat-select" name="category" aria-label="Filter by category" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if request.args.get('category', '') == cat %}selected{% endif %}>
+                            {{ cat }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-secondary">Filter</button>
+                {% if request.args.get('category') %}
+                    <a href="/user/products{% if request.args.get('search') %}?search={{ request.args.get('search') }}{% endif %}" class="btn btn-subtle btn-sm">All Categories</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Product Cards Grid -->
+    {% if not products %}
+        <div class="empty-state-card">
+            <div class="empty-state-icon">🔍</div>
+            <h3>No products found</h3>
+            <p>Try searching with different keywords or clear the category filter.</p>
+            <a href="/user/products" class="btn btn-primary">View All Products</a>
+        </div>
+    {% else %}
+        <div class="product-container">
+            {% for product in products %}
+            <article class="product-card">
+                <div class="product-img-wrap">
+                    <img src="{{ url_for('static', filename='uploads/product_images/' ~ product.image) }}" 
+                         alt="{{ product.name }}"
+                         loading="lazy">
+                </div>
+                <div class="product-info">
+                    <span class="category-badge">{{ product.category }}</span>
+                    <h3 class="product-title">{{ product.name }}</h3>
+                    <div class="product-price">₹{{ product.price }}</div>
+                </div>
+                <div class="product-card-actions">
+                    <a href="/user/product/{{ product.product_id }}" class="btn btn-secondary btn-sm">View Details</a>
+                    <a href="/user/add-to-cart/{{ product.product_id }}" class="btn btn-primary btn-sm">Add to Cart</a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}My Orders | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="orders-header">
+        <h2 class="page-title text-center">📦 My Orders</h2>
+        <p class="subtitle text-center">Track your orders, view order details and download invoices</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alerts-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% if not orders %}
+        <div class="empty-state-card">
+            <div class="empty-state-icon">📦</div>
+            <h3>No Orders Placed Yet</h3>
+            <p>You haven't ordered any items yet. Browse our catalog to get started!</p>
+            <a href="/user/products" class="btn btn-primary btn-large">Start Shopping</a>
+        </div>
+    {% else %}
+        <div class="orders-list">
+            {% for order in orders %}
+            <article class="order-card">
+                <div class="order-card-header">
+                    <div>
+                        <span class="order-id">Order #{{ order.order_id }}</span>
+                        <span class="order-date">{{ order.created_at }}</span>
+                    </div>
+                    <span class="status-badge status-{{ order.payment_status|lower }}">
+                        {{ order.payment_status|upper }}
+                    </span>
+                </div>
+
+                <div class="order-card-body">
+                    <div class="order-metric">
+                        <span class="metric-label">Amount Paid</span>
+                        <span class="metric-val">₹{{ order.amount }}</span>
+                    </div>
+                    <div class="order-metric">
+                        <span class="metric-label">Payment ID</span>
+                        <span class="metric-val text-mono">{{ order.razorpay_payment_id if order.razorpay_payment_id else 'N/A' }}</span>
+                    </div>
+                </div>
+
+                <div class="order-card-actions">
+                    <a href="/user/order-success/{{ order.order_id }}" class="btn btn-secondary btn-sm">
+                        View Details
+                    </a>
+                    <a href="/user/download-invoice/{{ order.order_id }}" class="btn btn-outline btn-sm">
+                        📄 Download Invoice
+                    </a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/user/products" class="btn btn-primary">Continue Shopping</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

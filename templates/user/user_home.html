@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}User Dashboard | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="dashboard-header text-center">
+        <h2 class="page-title">Welcome back, {{ user_name }}! 👋</h2>
+        <p class="subtitle">Manage your account, browse the latest products, and track your purchases.</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alerts-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <div class="card-icon">🛍️</div>
+            <h3>Explore Products</h3>
+            <p>Browse our catalog of items, search categories, and find deals.</p>
+            <a href="/user/products" class="btn btn-primary btn-block">Shop Now</a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">🛒</div>
+            <h3>My Cart</h3>
+            <p>Review items in your cart and proceed to instant checkout.</p>
+            <a href="/user/cart" class="btn btn-secondary btn-block">
+                View Cart ({{ session.get('cart')|length if session.get('cart') else 0 }})
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">📦</div>
+            <h3>Order History</h3>
+            <p>Track your recent orders and download receipts and invoices.</p>
+            <a href="/user/my-orders" class="btn btn-secondary btn-block">View Orders</a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">👤</div>
+            <h3>My Profile</h3>
+            <p>Update your personal information, address, and password.</p>
+            <a href="/user/profile" class="btn btn-secondary btn-block">Manage Profile</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

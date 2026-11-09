@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Invoice #{{ order.order_id }} | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="invoice-container">
+        <div class="invoice-print-actions">
+            <button onclick="window.print()" class="btn btn-primary btn-sm">🖨️ Print Invoice</button>
+            <a href="/user/my-orders" class="btn btn-secondary btn-sm">&larr; Back to My Orders</a>
+        </div>
+
+        <div class="invoice-box">
+            <div class="invoice-header">
+                <div class="invoice-brand">
+                    <h2>Smart<span class="brand-accent">Cart</span></h2>
+                    <p class="invoice-subtext">Official Tax Invoice / Purchase Receipt</p>
+                </div>
+                <div class="invoice-meta">
+                    <p><strong>Invoice #:</strong> INV-{{ order.order_id }}</p>
+                    <p><strong>Date:</strong> {{ order.created_at }}</p>
+                    <p><strong>Payment Status:</strong> <span class="badge badge-success">{{ order.payment_status|upper }}</span></p>
+                </div>
+            </div>
+
+            <hr class="invoice-divider">
+
+            <div class="invoice-parties">
+                <div class="invoice-party-col">
+                    <h4>Billed To:</h4>
+                    {% if customer %}
+                        <p><strong>{{ customer.full_name }}</strong></p>
+                        <p>Phone: {{ customer.phone }}</p>
+                        <p>{{ customer.delivery_address }}</p>
+                    {% else %}
+                        <p>User #{{ order.user_id }}</p>
+                    {% endif %}
+                </div>
+                <div class="invoice-party-col text-right">
+                    <h4>Issued By:</h4>
+                    <p><strong>SmartCart Inc.</strong></p>
+                    <p>support@smartcart.com</p>
+                    <p>Ref: {{ order.razorpay_payment_id if order.razorpay_payment_id else 'N/A' }}</p>
+                </div>
+            </div>
+
+            <div class="invoice-items-table">
+                <table class="responsive-table">
+                    <thead>
+                        <tr>
+                            <th>Item Description</th>
+                            <th style="width: 80px;" class="text-center">Qty</th>
+                            <th style="width: 120px;" class="text-right">Unit Price</th>
+                            <th style="width: 120px;" class="text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for it in items %}
+                        <tr>
+                            <td>{{ it.product_name }}</td>
+                            <td class="text-center">{{ it.quantity }}</td>
+                            <td class="text-right">₹{{ it.price }}</td>
+                            <td class="text-right"><strong>₹{{ (it.price * it.quantity)|round(2) }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="invoice-totals">
+                <div class="invoice-totals-row">
+                    <span>Subtotal:</span>
+                    <span>₹{{ order.amount }}</span>
+                </div>
+                <div class="invoice-totals-row">
+                    <span>Shipping:</span>
+                    <span>₹0.00 (FREE)</span>
+                </div>
+                <div class="invoice-totals-row invoice-grand-total">
+                    <span>Grand Total:</span>
+                    <span class="total-price">₹{{ order.amount }}</span>
+                </div>
+            </div>
+
+            <div class="invoice-footer-note">
+                <p>Thank you for choosing SmartCart! If you have questions regarding this invoice, please contact support.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

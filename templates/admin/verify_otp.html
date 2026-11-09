@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Verify Admin OTP | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="form-shell">
+        <h2 class="page-title text-center">Verify Admin OTP</h2>
+        <p class="subtitle text-center">Enter the verification code sent to your email and create a password</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form class="form-card" method="POST" action="/verify-otp">
+            <div class="form-group">
+                <label for="adm_otp">Enter 6-Digit OTP</label>
+                <input type="text" 
+                       id="adm_otp" 
+                       name="otp" 
+                       placeholder="e.g. 123456" 
+                       maxlength="6" 
+                       required 
+                       class="text-center text-otp" 
+                       autocomplete="one-time-code">
+            </div>
+
+            <div class="form-group">
+                <label for="adm_password">Create Password</label>
+                <input type="password" 
+                       id="adm_password" 
+                       name="password" 
+                       placeholder="Create secure password" 
+                       required 
+                       autocomplete="new-password">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Verify & Complete Registration</button>
+
+            <div class="form-footer-links">
+                <a href="/admin-signup">&larr; Back to Admin Registration</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Update {{ product.name }} | SmartCart Admin{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="form-shell">
+        <h2 class="page-title text-center">Update Product</h2>
+        <p class="subtitle text-center">Modify details for product #{{ product.product_id }}</p>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form class="form-card" method="POST" action="/admin/update-item/{{ product.product_id }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="up_name">Product Name</label>
+                <input type="text" id="up_name" name="name" value="{{ product.name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="up_category">Category</label>
+                <input type="text" id="up_category" name="category" value="{{ product.category }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="up_price">Price (₹ INR)</label>
+                <input type="number" id="up_price" step="0.01" min="0" name="price" value="{{ product.price }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="up_desc">Product Description</label>
+                <textarea id="up_desc" name="description" required>{{ product.description }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Current Product Image</label>
+                <div class="current-image-preview">
+                    <img src="{{ url_for('static', filename='uploads/product_images/' ~ product.image) }}" 
+                         alt="{{ product.name }}"
+                         class="preview-thumbnail">
+                    <span class="preview-filename">{{ product.image }}</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="up_image">Upload New Image <span class="label-hint">(optional)</span></label>
+                <input type="file" id="up_image" name="image" accept="image/*">
+                <small class="form-help">Leave empty to keep current image</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+
+            <div class="form-footer-links">
+                <a href="/admin/item-list">&larr; Back to Product List</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

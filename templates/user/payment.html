@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Complete Payment | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="form-shell">
+        <h2 class="page-title text-center">Complete Your Payment</h2>
+        <p class="subtitle text-center">Fast, easy and secure payment with Razorpay</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="payment-checkout-card">
+            <div class="payment-amount-box">
+                <span class="amount-label">Total Amount Payable</span>
+                <span class="amount-value">₹{{ amount }}</span>
+            </div>
+
+            <div class="payment-details-list">
+                <div class="detail-row">
+                    <span>Payment Gateway:</span>
+                    <strong>Razorpay Secure</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Currency:</span>
+                    <strong>INR (₹)</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Order Reference:</span>
+                    <code>{{ order_id }}</code>
+                </div>
+            </div>
+
+            <button id="rzp-button" class="btn btn-success btn-large btn-block">
+                💳 Pay Now ₹{{ amount }}
+            </button>
+
+            <div class="payment-trust-badge">
+                <span>🔒 Supports UPI, Credit/Debit Cards, NetBanking & Wallets</span>
+            </div>
+
+            <div class="form-footer-links">
+                <a href="/user/cart">&larr; Return to Cart</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    var options = {
+        "key": "{{ key_id }}",
+        "amount": "{{ amount * 100 }}",
+        "currency": "INR",
+        "name": "SmartCart",
+        "description": "Order Payment",
+        "order_id": "{{ order_id }}",
+        "handler": function (response){
+            var form = document.createElement("form");
+            form.method = "POST";
+            form.action = "/verify-payment";
+
+            var fields = {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+            };
+
+            for (var name in fields) {
+                var input = document.createElement("input");
+                input.type = "hidden";
+                input.name = name;
+                input.value = fields[name];
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        },
+        "theme": {
+            "color": "#3157d5"
+        }
+    };
+
+    var rzp = new Razorpay(options);
+    document.getElementById('rzp-button').onclick = function(e){
+        rzp.open();
+        e.preventDefault();
+    };
+</script>
+{% endblock %}

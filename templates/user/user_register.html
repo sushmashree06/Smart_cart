@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}User Registration | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="form-shell">
+        <h2 class="page-title text-center">Create Your Account</h2>
+        <p class="subtitle text-center">Join SmartCart today for quick checkout and order tracking</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form class="form-card" method="POST" action="/user-register">
+            <div class="form-group">
+                <label for="reg_name">Full Name</label>
+                <input type="text" 
+                       id="reg_name" 
+                       name="name" 
+                       placeholder="Enter your full name" 
+                       required 
+                       autocomplete="name">
+            </div>
+
+            <div class="form-group">
+                <label for="reg_email">Email Address</label>
+                <input type="email" 
+                       id="reg_email" 
+                       name="email" 
+                       placeholder="name@example.com" 
+                       required 
+                       autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="reg_password">Password</label>
+                <input type="password" 
+                       id="reg_password" 
+                       name="password" 
+                       placeholder="At least 6 characters" 
+                       required 
+                       autocomplete="new-password">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Register Account</button>
+
+            <div class="form-footer-links">
+                <span>Already have an account? </span>
+                <a href="/user-login"><strong>Sign In</strong></a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

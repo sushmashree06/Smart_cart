@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Add Product | SmartCart Admin{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="form-shell">
+        <h2 class="page-title text-center">Add New Product</h2>
+        <p class="subtitle text-center">Fill in the details below to publish a product to the catalog</p>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form class="form-card" method="POST" action="/admin/add-item" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="prod_name">Product Name</label>
+                <input type="text" id="prod_name" name="name" placeholder="e.g. Wireless Smart Watch" required>
+            </div>
+
+            <div class="form-group">
+                <label for="prod_category">Category</label>
+                <input type="text" id="prod_category" name="category" placeholder="e.g. Electronics, Fashion, Home" required>
+            </div>
+
+            <div class="form-group">
+                <label for="prod_price">Price (₹ INR)</label>
+                <input type="number" id="prod_price" step="0.01" min="0" name="price" placeholder="e.g. 1499.00" required>
+            </div>
+
+            <div class="form-group">
+                <label for="prod_desc">Product Description</label>
+                <textarea id="prod_desc" name="description" placeholder="Write detailed product specifications..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="prod_image">Product Image</label>
+                <input type="file" id="prod_image" name="image" accept="image/*" required>
+                <small class="form-help">Supported formats: JPG, PNG, WEBP, GIF</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Publish Product</button>
+
+            <div class="form-footer-links">
+                <a href="/admin/item-list">&larr; Back to Product List</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

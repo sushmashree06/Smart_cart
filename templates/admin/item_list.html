@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Products Management | SmartCart Admin{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="admin-page-header">
+        <h2 class="page-title text-center">Product Management</h2>
+        <p class="subtitle text-center">Manage all items, prices, categories and stock</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alerts-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Admin Action Bar -->
+    <div class="admin-action-bar">
+        <a href="{{ url_for('add_item_page') }}" class="btn btn-primary">+ Add New Product</a>
+        <a href="/admin/profile" class="btn btn-secondary">Admin Profile</a>
+        <a href="/admin-dashboard" class="btn btn-outline">Dashboard</a>
+    </div>
+
+    <!-- Centered Search and Filter (2 Separate Tools) -->
+    <div class="search-filter-wrapper">
+        <!-- 1. Dedicated Search Form -->
+        <form class="search-box-form" method="GET" action="{{ url_for('item_list') }}" role="search">
+            {% if request.args.get('category') %}
+                <input type="hidden" name="category" value="{{ request.args.get('category') }}">
+            {% endif %}
+            <div class="search-input-group">
+                <span class="search-icon" aria-hidden="true">🔍</span>
+                <input type="text" 
+                       name="search" 
+                       placeholder="Search your products..." 
+                       value="{{ request.args.get('search', '') }}" 
+                       aria-label="Search products">
+                <button type="submit" class="btn btn-primary">Search</button>
+                {% if request.args.get('search') %}
+                    <a href="{{ url_for('item_list') }}{% if request.args.get('category') %}?category={{ request.args.get('category') }}{% endif %}" class="btn btn-secondary btn-sm">Clear Search</a>
+                {% endif %}
+            </div>
+        </form>
+
+        <!-- 2. Dedicated Category Filter Form -->
+        <form class="filter-box-form" method="GET" action="{{ url_for('item_list') }}">
+            {% if request.args.get('search') %}
+                <input type="hidden" name="search" value="{{ request.args.get('search') }}">
+            {% endif %}
+            <div class="category-select-group">
+                <label for="adm-cat-select" class="filter-label">Category:</label>
+                <select id="adm-cat-select" name="category" aria-label="Filter by category" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if request.args.get('category', '') == cat %}selected{% endif %}>
+                            {{ cat }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-secondary">Filter</button>
+                {% if request.args.get('category') %}
+                    <a href="{{ url_for('item_list') }}{% if request.args.get('search') %}?search={{ request.args.get('search') }}{% endif %}" class="btn btn-subtle btn-sm">All Categories</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Products Table -->
+    {% if not products %}
+        <div class="empty-state-card">
+            <div class="empty-state-icon">📦</div>
+            <h3>No products found</h3>
+            <p>Try clearing your search query or add your first product.</p>
+            <a href="{{ url_for('add_item_page') }}" class="btn btn-primary">+ Add Product</a>
+        </div>
+    {% else %}
+        <div class="table-responsive">
+            <table class="responsive-table" aria-label="Admin Products Table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th style="width: 80px;">Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th style="width: 220px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td><strong>#{{ product['product_id'] }}</strong></td>
+                        <td>
+                            <img src="{{ url_for('static', filename='uploads/product_images/' ~ product['image']) }}" 
+                                 alt="{{ product['name'] }}" 
+                                 class="table-thumb">
+                        </td>
+                        <td>
+                            <div class="product-table-name">{{ product['name'] }}</div>
+                        </td>
+                        <td>
+                            <span class="category-badge">{{ product['category'] }}</span>
+                        </td>
+                        <td class="product-price">₹{{ product['price'] }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{{ url_for('view_item', item_id=product['product_id']) }}" class="btn btn-sm btn-secondary">View</a>
+                                <a href="{{ url_for('update_item', item_id=product['product_id']) }}" class="btn btn-sm btn-primary">Update</a>
+                                <a href="{{ url_for('delete_item', item_id=product['product_id']) }}" 
+                                   class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Are you sure you want to delete &quot;{{ product['name'] }}&quot;? This cannot be undone.');">
+                                    Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

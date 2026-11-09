@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#172554">
+    <title>{% block title %}SmartCart{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+        <nav class="navbar container" aria-label="Main navigation">
+            <a class="brand" href="{% if session.get('admin_id') %}/admin-dashboard{% elif session.get('user_id') %}/user/products{% else %}/user-login{% endif %}" aria-label="SmartCart Home">
+                <span class="brand-mark">S</span><span>Smart<span class="brand-accent">Cart</span></span>
+            </a>
+            <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="nav-menu">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-menu" id="nav-menu">
+                {% if session.get('admin_id') %}
+                    <a href="/admin-dashboard">Dashboard</a>
+                    <a href="/admin/item-list">Products</a>
+                    <a href="/admin/add-item">Add Product</a>
+                    <a href="/admin/profile">Profile</a>
+                    <a class="nav-cta" href="/admin-logout">Logout</a>
+                {% elif session.get('user_id') %}
+                    <a href="/user/products">Shop</a>
+                    <a href="/user/cart">Cart{% if session.get('cart') %} <span class="cart-count">{{ session.get('cart')|length }}</span>{% endif %}</a>
+                    <a href="/user/my-orders">My Orders</a>
+                    <a href="/user/profile">Profile</a>
+                    <a class="nav-cta" href="/user-logout">Logout</a>
+                {% else %}
+                    <a href="/user/products">Shop</a>
+                    <a href="/user-login">Login</a>
+                    <a class="nav-cta" href="/user-register">Create Account</a>
+                    <a class="nav-subtle" href="/admin-login">Admin</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+    <main class="main-content" id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>© 2026 SmartCart. All rights reserved. Made for smarter shopping.</p>
+        </div>
+    </footer>
+    <script>
+      (function () {
+        const toggle = document.querySelector('.nav-toggle');
+        const menu = document.querySelector('.nav-menu');
+        if (toggle && menu) {
+          toggle.addEventListener('click', function () {
+            const isOpen = menu.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', String(isOpen));
+          });
+          // Close menu when clicking outside
+          document.addEventListener('click', function (e) {
+            if (!toggle.contains(e.target) && !menu.contains(e.target) && menu.classList.contains('is-open')) {
+              menu.classList.remove('is-open');
+              toggle.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+      })();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

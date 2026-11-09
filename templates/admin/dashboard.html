@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="dashboard-header text-center">
+        <h2 class="page-title">Welcome, {{ admin_name }}! 🛡️</h2>
+        <p class="subtitle">SmartCart Admin Central: Manage products, inventory, and administrative settings</p>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alerts-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <div class="card-icon">📦</div>
+            <h3>Product Catalog</h3>
+            <p>View, search, edit, and delete products across all store categories.</p>
+            <a href="/admin/item-list" class="btn btn-primary btn-block">Manage Products</a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">➕</div>
+            <h3>Add New Product</h3>
+            <p>List new merchandise with custom pictures, prices, and categories.</p>
+            <a href="/admin/add-item" class="btn btn-secondary btn-block">Add Product</a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">👤</div>
+            <h3>Admin Profile</h3>
+            <p>Update administrator credentials, display name, and avatar picture.</p>
+            <a href="/admin/profile" class="btn btn-secondary btn-block">View Profile</a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">🔒</div>
+            <h3>Session Management</h3>
+            <p>End your administrative session securely on this workstation.</p>
+            <a href="/admin-logout" class="btn btn-danger btn-block">Sign Out</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Delivery Address | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="form-shell">
+        <h2 class="page-title text-center">Delivery Address</h2>
+        <p class="subtitle text-center">Enter the address where you want your order delivered</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form class="form-card" action="/user/save-address" method="POST">
+            <div class="form-group">
+                <label for="address_fullname">Full Name</label>
+                <input type="text"
+                       id="address_fullname"
+                       name="name"
+                       placeholder="Enter your full name"
+                       required
+                       autocomplete="name">
+            </div>
+
+            <div class="form-group">
+                <label for="address_phone">Phone Number</label>
+                <input type="tel"
+                       id="address_phone"
+                       name="phone"
+                       placeholder="10-digit mobile number"
+                       pattern="[0-9]{10}"
+                       maxlength="10"
+                       required
+                       autocomplete="tel">
+                <small class="form-help">Enter valid 10-digit mobile number</small>
+            </div>
+
+            <div class="form-group">
+                <label for="address_delivery">Complete Delivery Address</label>
+                <textarea id="address_delivery"
+                          name="address"
+                          placeholder="House/Flat No., Street, Area, Landmark, City, State, PIN Code"
+                          required
+                          autocomplete="street-address"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                Save & Proceed to Payment &rarr;
+            </button>
+
+            <div class="form-footer-links">
+                <a href="/user/cart">&larr; Back to Shopping Cart</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

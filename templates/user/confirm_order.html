@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Confirm Order & Delivery | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="form-shell">
+        <h2 class="page-title text-center">Confirm Your Order Details</h2>
+        <p class="subtitle text-center">Please review your delivery address and order before payment</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="confirm-order-card">
+            <!-- Delivery Details Box -->
+            <div class="confirm-section">
+                <div class="section-header-flex">
+                    <h3>📍 Delivery Address</h3>
+                    <a href="/user/address" class="btn btn-sm btn-outline">Edit Address</a>
+                </div>
+                <div class="delivery-info-box">
+                    <p><strong>Recipient Name:</strong> {{ customer.full_name }}</p>
+                    <p><strong>Contact Phone:</strong> {{ customer.phone }}</p>
+                    <p><strong>Delivery Address:</strong> {{ customer.delivery_address }}</p>
+                </div>
+            </div>
+
+            <hr class="summary-divider">
+
+            <!-- Order Items Box -->
+            {% if cart %}
+            <div class="confirm-section">
+                <h3>🛍️ Items Summary</h3>
+                <div class="table-responsive">
+                    <table class="responsive-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pid, item in cart.items() %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>₹{{ item.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td><strong>₹{{ (item.price * item.quantity)|round(2) }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="summary-total-banner">
+                    <span>Total Amount Payable:</span>
+                    <span class="total-price">₹{{ grand_total|round(2) }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Proceed to Payment Action -->
+            <div class="confirm-actions">
+                <a href="/user/pay" class="btn btn-success btn-large btn-block">
+                    Proceed to Payment (₹{{ grand_total|round(2) if grand_total else '' }}) &rarr;
+                </a>
+                <a href="/user/cart" class="btn btn-secondary btn-block">
+                    &larr; Back to Cart
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}My Profile | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="profile-wrapper">
+        <h2 class="page-title text-center">My Profile</h2>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <!-- Avatar Display -->
+            <div class="profile-avatar-wrap">
+                {% if user.profile_image %}
+                    <img src="/uploads/user_profiles/{{ user.profile_image }}" 
+                         alt="{{ user.name }}" 
+                         class="profile-avatar"
+                         onerror="this.onerror=null; this.src='/static/uploads/user_profiles/{{ user.profile_image }}';">
+                {% else %}
+                    <div class="profile-avatar-placeholder" aria-label="Profile Avatar">
+                        {{ user.name[:1]|upper if user.name else 'U' }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <h3 class="profile-user-name">{{ user.name }}</h3>
+            <p class="profile-user-email">{{ user.email }}</p>
+
+            <div class="profile-stats-grid">
+                <div class="profile-stat-box">
+                    <span class="stat-label">User ID</span>
+                    <span class="stat-val">#{{ user.user_id }}</span>
+                </div>
+                <div class="profile-stat-box">
+                    <span class="stat-label">Account Type</span>
+                    <span class="stat-val">Customer</span>
+                </div>
+                <div class="profile-stat-box">
+                    <span class="stat-label">Default Address</span>
+                    <span class="stat-val">{% if address %}{{ address.full_name }} ({{ address.phone }}){% else %}Not Set{% endif %}</span>
+                </div>
+            </div>
+
+            {% if address %}
+            <div class="profile-address-preview">
+                <h4>Saved Delivery Address</h4>
+                <p><strong>Name:</strong> {{ address.full_name }}</p>
+                <p><strong>Phone:</strong> {{ address.phone }}</p>
+                <p><strong>Address:</strong> {{ address.delivery_address }}</p>
+                <a href="/user/address" class="btn btn-sm btn-outline">Update Address</a>
+            </div>
+            {% else %}
+            <div class="profile-address-preview empty-address">
+                <p>No delivery address saved yet.</p>
+                <a href="/user/address" class="btn btn-sm btn-outline">+ Add Delivery Address</a>
+            </div>
+            {% endif %}
+
+            <hr class="profile-divider">
+
+            <!-- Edit Profile Form -->
+            <h3 class="form-section-title">Edit Profile Information</h3>
+            <form class="profile-form" method="POST" action="/user/profile" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" value="{{ user.name }}" required autocomplete="name">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" value="{{ user.email }}" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">New Password <span class="label-hint">(leave blank to keep current password)</span></label>
+                    <input type="password" id="password" name="password" placeholder="Minimum 6 characters" autocomplete="new-password">
+                </div>
+
+                <div class="form-group">
+                    <label for="profile_image">Profile Picture <span class="label-hint">(optional)</span></label>
+                    <input type="file" id="profile_image" name="profile_image" accept="image/*">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+            </form>
+
+            <div class="profile-quick-actions">
+                <a href="/user/products" class="btn btn-secondary">Browse Shop</a>
+                <a href="/user/my-orders" class="btn btn-secondary">My Orders</a>
+                <a href="/user/cart" class="btn btn-secondary">Shopping Cart</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

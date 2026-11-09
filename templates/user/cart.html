@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Shopping Cart | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="cart-header-row">
+        <h2 class="page-title">Shopping Cart</h2>
+        {% if cart %}
+            <span class="badge badge-primary">{{ cart|length }} {{ 'item' if cart|length == 1 else 'items' }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alerts-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% if not cart %}
+        <div class="empty-state-card">
+            <div class="empty-state-icon">🛒</div>
+            <h3>Your cart is empty</h3>
+            <p>Looks like you haven't added anything to your cart yet.</p>
+            <a href="/user/products" class="btn btn-primary btn-large">Start Shopping Now</a>
+        </div>
+    {% else %}
+        <div class="cart-layout">
+            <div class="cart-table-wrapper">
+                <div class="cart-select-all-bar">
+                    <label class="checkbox-label" for="select-all">
+                        <input type="checkbox" id="select-all" checked onchange="toggleSelectAll(this)">
+                        <span>Select All Products</span>
+                    </label>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="cart-table" aria-label="Shopping Cart Items">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">Select</th>
+                                <th style="width: 90px;">Item</th>
+                                <th>Product Details</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pid, item in cart.items() %}
+                            <tr data-item-id="{{ pid }}">
+                                <td class="text-center">
+                                    <input type="checkbox" 
+                                           class="product-check" 
+                                           checked 
+                                           aria-label="Select {{ item.name }}"
+                                           onchange="calculateTotal()">
+                                </td>
+                                <td>
+                                    <img src="{{ url_for('static', filename='uploads/product_images/' ~ item.image) }}" 
+                                         alt="{{ item.name }}" 
+                                         class="cart-item-img">
+                                </td>
+                                <td>
+                                    <a href="/user/product/{{ pid }}" class="cart-item-title">{{ item.name }}</a>
+                                </td>
+                                <td class="cart-item-unit-price">₹{{ item.price }}</td>
+                                <td>
+                                    <div class="quantity-stepper">
+                                        <a href="/user/cart/decrease/{{ pid }}" class="qty-btn" aria-label="Decrease quantity">-</a>
+                                        <span class="qty-count">{{ item.quantity }}</span>
+                                        <a href="/user/cart/increase/{{ pid }}" class="qty-btn" aria-label="Increase quantity">+</a>
+                                    </div>
+                                </td>
+                                <td class="cart-item-line-total">
+                                    <strong>₹<span class="item-calc-total">{{ (item.price * item.quantity)|round(2) }}</span></strong>
+                                </td>
+                                <td>
+                                    <a href="/user/cart/remove/{{ pid }}" class="btn-remove" aria-label="Remove {{ item.name }}">
+                                        Remove
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="cart-table-footer">
+                    <a href="/user/products" class="btn btn-secondary">&larr; Continue Shopping</a>
+                </div>
+            </div>
+
+            <!-- Cart Order Summary Sidebar -->
+            <aside class="cart-summary-card">
+                <h3>Order Summary</h3>
+                <div class="summary-line">
+                    <span>Items Selected:</span>
+                    <strong id="selected-items-count">{{ cart|length }}</strong>
+                </div>
+                <div class="summary-line">
+                    <span>Subtotal:</span>
+                    <span>₹<span id="subtotal-amount">{{ grand_total|round(2) }}</span></span>
+                </div>
+                <div class="summary-line">
+                    <span>Delivery Charges:</span>
+                    <span class="text-success">FREE</span>
+                </div>
+                <hr class="summary-divider">
+                <div class="summary-line total-line">
+                    <span>Grand Total:</span>
+                    <span class="total-price">₹<span id="grand-total">{{ grand_total|round(2) }}</span></span>
+                </div>
+
+                <!-- PROCEED TO PAYMENT BUTTON -->
+                <div class="cart-checkout-actions">
+                    <a href="/user/checkout" id="checkout-btn" class="btn btn-success btn-checkout btn-block">
+                        Proceed to Payment &rarr;
+                    </a>
+                    <a href="/user/pay" class="btn btn-outline btn-block mt-2">
+                        Quick Pay with Razorpay
+                    </a>
+                    <a href="/user/address" class="btn btn-subtle btn-block mt-2">
+                        Change Delivery Address
+                    </a>
+                </div>
+
+                <div class="secure-badge">
+                    🔒 <span>Secure 256-bit SSL encrypted checkout</span>
+                </div>
+            </aside>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function calculateTotal() {
+        const checkboxes = document.querySelectorAll(".product-check");
+        let grandTotal = 0;
+        let selectedCount = 0;
+
+        checkboxes.forEach(function (checkbox) {
+            if (checkbox.checked) {
+                selectedCount++;
+                const row = checkbox.closest("tr");
+                const itemTotalElem = row.querySelector(".item-calc-total");
+                if (itemTotalElem) {
+                    const total = parseFloat(itemTotalElem.innerText.replace(/[^0-9.]/g, "")) || 0;
+                    grandTotal += total;
+                }
+            }
+        });
+
+        const grandTotalElem = document.getElementById("grand-total");
+        const subtotalElem = document.getElementById("subtotal-amount");
+        const selectedCountElem = document.getElementById("selected-items-count");
+        const checkoutBtn = document.getElementById("checkout-btn");
+
+        if (grandTotalElem) grandTotalElem.innerText = grandTotal.toFixed(2);
+        if (subtotalElem) subtotalElem.innerText = grandTotal.toFixed(2);
+        if (selectedCountElem) selectedCountElem.innerText = selectedCount;
+
+        if (checkoutBtn) {
+            if (selectedCount === 0) {
+                checkoutBtn.classList.add("disabled");
+                checkoutBtn.setAttribute("aria-disabled", "true");
+                checkoutBtn.onclick = function(e) {
+                    e.preventDefault();
+                    alert("Please select at least one item to proceed to payment.");
+                };
+            } else {
+                checkoutBtn.classList.remove("disabled");
+                checkoutBtn.removeAttribute("aria-disabled");
+                checkoutBtn.onclick = null;
+            }
+        }
+
+        // Update Select All checkbox state
+        const selectAll = document.getElementById("select-all");
+        if (selectAll && checkboxes.length > 0) {
+            selectAll.checked = (selectedCount === checkboxes.length);
+        }
+    }
+
+    function toggleSelectAll(selectAllCheckbox) {
+        const checkboxes = document.querySelectorAll(".product-check");
+        checkboxes.forEach(function (checkbox) {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+        calculateTotal();
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        calculateTotal();
+    });
+</script>
+{% endblock %}

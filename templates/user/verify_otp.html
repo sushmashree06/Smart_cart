@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Verify OTP | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="form-shell">
+        <h2 class="page-title text-center">Verify OTP</h2>
+        <p class="subtitle text-center">
+            Enter the 6-digit OTP code sent to your email address.
+        </p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form class="form-card" method="POST" action="{{ url_for('verify_user_otp') }}">
+            <div class="form-group">
+                <label for="otp_input">Enter 6-Digit OTP</label>
+                <input type="text"
+                       id="otp_input"
+                       name="otp"
+                       placeholder="e.g. 123456"
+                       maxlength="6"
+                       pattern="[0-9]{6}"
+                       required
+                       class="text-center text-otp"
+                       autocomplete="one-time-code">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Verify OTP</button>
+
+            <div class="form-footer-links">
+                <a href="{{ url_for('user_forgot_password') }}">&larr; Request New OTP</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

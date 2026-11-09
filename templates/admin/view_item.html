@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} | SmartCart Admin{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="breadcrumb-nav">
+        <a href="/admin/item-list">&larr; Back to Product Management</a>
+    </div>
+
+    <div class="product-detail-card">
+        <div class="product-detail-grid">
+            <div class="product-detail-media">
+                <img src="{{ url_for('static', filename='uploads/product_images/' ~ product.image) }}" 
+                     alt="{{ product.name }}"
+                     class="product-detail-img">
+            </div>
+
+            <div class="product-detail-body">
+                <div class="product-id-tag">Product ID: #{{ product.product_id }}</div>
+                <span class="category-badge">{{ product.category }}</span>
+                <h1 class="product-detail-title">{{ product.name }}</h1>
+                <div class="product-detail-price">₹{{ product.price }}</div>
+
+                <div class="product-detail-desc">
+                    <h3>Description</h3>
+                    <p>{{ product.description }}</p>
+                </div>
+
+                <div class="product-detail-actions">
+                    <a href="{{ url_for('update_item', item_id=product.product_id) }}" class="btn btn-primary btn-large">
+                        ✏️ Edit Product
+                    </a>
+                    <a href="{{ url_for('delete_item', item_id=product.product_id) }}" 
+                       class="btn btn-danger btn-large"
+                       onclick="return confirm('Are you sure you want to delete this product?');">
+                        🗑️ Delete Product
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

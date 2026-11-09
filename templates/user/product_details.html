@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} | SmartCart{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="breadcrumb-nav">
+        <a href="/user/products">&larr; Back to Products</a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alerts-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        <span>{{ message }}</span>
+                        <a href="/user/cart" class="alert-link-btn">View Cart &rarr;</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="product-detail-card">
+        <div class="product-detail-grid">
+            <div class="product-detail-media">
+                <img src="{{ url_for('static', filename='uploads/product_images/' ~ product.image) }}" 
+                     alt="{{ product.name }}"
+                     class="product-detail-img">
+            </div>
+
+            <div class="product-detail-body">
+                <span class="category-badge">{{ product.category }}</span>
+                <h1 class="product-detail-title">{{ product.name }}</h1>
+                <div class="product-detail-price">₹{{ product.price }}</div>
+
+                <div class="product-detail-desc">
+                    <h3>Description</h3>
+                    <p>{{ product.description }}</p>
+                </div>
+
+                <div class="product-detail-actions">
+                    <a href="/user/add-to-cart/{{ product.product_id }}" class="btn btn-primary btn-large">
+                        🛒 Add to Cart
+                    </a>
+                    <a href="/user/cart" class="btn btn-success btn-large">
+                        Proceed to Payment &rarr;
+                    </a>
+                </div>
+
+                <div class="product-detail-meta">
+                    <span>✓ In Stock</span>
+                    <span>✓ Free Standard Delivery</span>
+                    <span>✓ 100% Secure Checkout</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
