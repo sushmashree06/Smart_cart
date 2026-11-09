@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, flash, url_for, send_from_directory, make_response
 from flask_mail import Mail, Message
-import mysql.connector
+import sqlite3
 import bcrypt
 import random
 import config
@@ -32,16 +32,138 @@ mail = Mail(app)
 
 
 # =========================================================
-# DATABASE CONNECTION
+# DATABASE CONNECTION (SQLITE)
 # =========================================================
 
+DATABASE = getattr(config, 'DB_PATH', os.path.join(app.root_path, 'smartcart.db'))
+
+class SQLiteCursor(sqlite3.Cursor):
+    def execute(self, sql, params=None):
+        if params is not None:
+            # Transparently translate MySQL %s placeholders to SQLite ?
+            sql = sql.replace('%s', '?')
+            return super().execute(sql, params)
+        return super().execute(sql)
+
+    def executemany(self, sql, params_seq):
+        sql = sql.replace('%s', '?')
+        return super().executemany(sql, params_seq)
+
+class SQLiteConnection(sqlite3.Connection):
+    def cursor(self, *args, **kwargs):
+        # Ignores dictionary=True and sets row_factory to sqlite3.Row
+        cur = super().cursor(SQLiteCursor)
+        cur.row_factory = sqlite3.Row
+        return cur
+
 def get_db_connection():
-    return mysql.connector.connect(
-        host=config.DB_HOST,
-        user=config.DB_USER,
-        password=config.DB_PASSWORD,
-        database=config.DB_NAME
-    )
+    conn = sqlite3.connect(DATABASE, factory=SQLiteConnection)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin (
+            admin_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            profile_image TEXT DEFAULT NULL
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            profile_image TEXT DEFAULT NULL
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS products (
+            product_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            admin_id INTEGER DEFAULT 1,
+            name TEXT NOT NULL,
+            description TEXT,
+            category TEXT,
+            price REAL NOT NULL,
+            image TEXT
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS customer_address (
+            address_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            full_name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            delivery_address TEXT NOT NULL
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS orders (
+            order_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            razorpay_order_id TEXT,
+            razorpay_payment_id TEXT,
+            amount REAL NOT NULL,
+            payment_status TEXT DEFAULT 'paid',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS order_items (
+            item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER,
+            product_id INTEGER,
+            product_name TEXT NOT NULL,
+            quantity INTEGER NOT NULL,
+            price REAL NOT NULL
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS password_resets (
+            email TEXT PRIMARY KEY,
+            otp_hash TEXT NOT NULL,
+            expires_at TIMESTAMP,
+            attempts INTEGER DEFAULT 0
+        )
+    """)
+
+    # Seed initial products if table is empty
+    cursor.execute("SELECT COUNT(*) AS total FROM products")
+    count_row = cursor.fetchone()
+    if count_row and count_row['total'] == 0:
+        sample_products = [
+            (1, "Wireless Smart Earbuds", "High fidelity Bluetooth wireless earbuds with noise cancellation.", "Electronics", 1299.00, "ear.webp"),
+            (1, "Smart Fitness Watch", "Touchscreen fitness smartwatch with heart rate & sleep tracking.", "Electronics", 2499.00, "s1.webp"),
+            (1, "Ultra HD Smart Screen", "Compact high-resolution portable smart display with dual stereo speakers.", "Electronics", 3999.00, "s2.jpg"),
+            (1, "Smart Home Voice Hub", "Voice-controlled smart assistant hub with automated device sync.", "Home & Kitchen", 1899.00, "s3.jpg"),
+            (1, "Noise-Cancelling Headphones", "Over-ear cushioned wireless smart headphones with long battery life.", "Electronics", 2999.00, "s4.webp"),
+            (1, "Smart LED Desk Lamp", "Dimmable touch-sensitive smart lamp with multiple color temperatures.", "Home & Kitchen", 899.00, "s5.avif"),
+            (1, "Fast Charging Smart Dock", "Multi-device wireless charging station with fast charge technology.", "Accessories", 1199.00, "s8.webp"),
+            (1, "Smart Travel Security Tag", "Real-time GPS Bluetooth smart tracking tag for bags and keys.", "Accessories", 699.00, "download.webp")
+        ]
+        cursor.executemany("""
+            INSERT INTO products (admin_id, name, description, category, price, image)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, sample_products)
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+# Initialize tables immediately
+init_db()
 
 
 # =========================================================
@@ -881,20 +1003,11 @@ def forgot_password():
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    cursor.execute("DELETE FROM password_resets WHERE email = ?", (email,))
     cursor.execute(
         """
-        INSERT INTO password_resets
-        (email, otp_hash, expires_at, attempts)
-        VALUES (
-            %s,
-            %s,
-            DATE_ADD(UTC_TIMESTAMP(), INTERVAL 5 MINUTE),
-            0
-        )
-        ON DUPLICATE KEY UPDATE
-            otp_hash = VALUES(otp_hash),
-            expires_at = VALUES(expires_at),
-            attempts = 0
+        INSERT INTO password_resets (email, otp_hash, expires_at, attempts)
+        VALUES (?, ?, datetime('now', '+5 minutes'), 0)
         """,
         (email, otp_hash)
     )
@@ -976,9 +1089,9 @@ def reset_password():
     cursor.execute(
         """
         SELECT otp_hash, attempts,
-        (expires_at > UTC_TIMESTAMP()) AS active
+        (datetime(expires_at) > datetime('now')) AS active
         FROM password_resets
-        WHERE email=%s
+        WHERE email = ?
         """,
         (email,)
     )
@@ -1377,15 +1490,16 @@ def user_profile_update():
 
     # Ensure profile_image column exists in users table (auto-migrate if missing)
     try:
-        cursor.execute("SHOW COLUMNS FROM users LIKE 'profile_image'")
-        has_profile_img_col = cursor.fetchone() is not None
+        cursor.execute("PRAGMA table_info(users)")
+        cols = [r['name'] for r in cursor.fetchall()]
+        has_profile_img_col = 'profile_image' in cols
         if not has_profile_img_col:
-            cursor.execute("ALTER TABLE users ADD COLUMN profile_image VARCHAR(255) DEFAULT NULL")
+            cursor.execute("ALTER TABLE users ADD COLUMN profile_image TEXT DEFAULT NULL")
             conn.commit()
             has_profile_img_col = True
     except Exception as e:
         print("Note on users column:", e)
-        has_profile_img_col = False
+        has_profile_img_col = True
 
     old_image_name = user.get('profile_image')
     final_image_name = old_image_name

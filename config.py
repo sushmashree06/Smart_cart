@@ -1,10 +1,15 @@
+import os
+
 SECRET_KEY = "your_secret_key"
 
-# MySQL Database
+# Database Configuration (SQLite)
+DB_NAME = "smartcart.db"
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), DB_NAME)
+
+# Legacy MySQL settings (kept for backwards compatibility if needed)
 DB_HOST = "localhost"
 DB_USER = "root"
 DB_PASSWORD = "root"
-DB_NAME = "clgdb"
 
 # Email SMTP Settings
 MAIL_SERVER = 'smtp.gmail.com'
